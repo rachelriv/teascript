@@ -333,7 +333,7 @@ out('Happy New Year!')
 Functions in teascript look a lot like the functions in CoffeeScript. Functions are
 first-class objects.
 
-```
+```ruby
 repeat = (str, n) ->
     new_str := ""
     for i in 1..n:
