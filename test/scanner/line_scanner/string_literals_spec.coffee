@@ -3,18 +3,26 @@ expect = chai.expect
 LineScanner = require '../../../scanner/line_scanner'
 
 describe 'LineScanner', ->
+  exampleScanningState = 
+    lineNumber: 1
+    multiline:
+      comment: false
+      string: false
+    string:
+      doubleQuote: false
+
   describe 'Extracting String Literals', ->
 
-    describe '#extractedStringLiterals', ->
+    describe '#extractedStringLiteralToken', ->
 
       context 'when the next token is a string without a defined ending', ->
         lineScanner = new LineScanner '\'this is a multiline string without a
-                                       defined ending'
-        result = lineScanner.extractedStringLiterals()
+                                       defined ending', exampleScanningState
+        result = lineScanner.extractedStringLiteralToken()
 
         it 'sets the current state of the mulitline string of the scanner to be
             true', ->
-          expect(lineScanner.currentState.multiline.string).to.be.true
+          expect(lineScanner.currentScanningState.multiline.string).to.be.true
 
         it 'increments the scanner position to the end of the line', ->
           expect(lineScanner.position).to.equal 52
@@ -27,6 +35,7 @@ describe 'LineScanner', ->
 
       context 'when the scanner is in the middle of a multiline string', ->
         currentScannerState =
+          lineNumber: 1
           multiline:
             string: true
           string:
@@ -34,11 +43,11 @@ describe 'LineScanner', ->
         lineScanner = new LineScanner 'this is the continuation of a multiline
                                        string begun elsewhere \''
                                       , currentScannerState
-        result = lineScanner.extractedStringLiterals()
+        result = lineScanner.extractedStringLiteralToken()
 
         it 'toggles the current state of the multiline string of the
             scanner back to false', ->
-          expect(lineScanner.currentState.multiline.string).to.be.false
+          expect(lineScanner.currentScanningState.multiline.string).to.be.false
 
         it 'increments the scanner position to the end of the string', ->
           expect(lineScanner.position).to.equal 64
@@ -48,6 +57,7 @@ describe 'LineScanner', ->
             .eql [{
               start: 0,
               kind: 'STRLIT',
+              lineNumber: 1,
               lexeme: 'this is the continuation of a multiline string begun
                        elsewhere \''
             }]
@@ -56,13 +66,20 @@ describe 'LineScanner', ->
           expect(result).to.be.true
 
       context 'when there is a multiline string with a defined ending', ->
+        exampleScanningState =
+          lineNumber: 1
+          multiline:
+            comment: false
+            string: false
+          string:
+            doubleQuote: false
         lineScanner = new LineScanner '\'this is a multiline string with
-                                       a defined ending \'f := 5'
-        result = lineScanner.extractedStringLiterals()
+                                       a defined ending \'f := 5', exampleScanningState
+        result = lineScanner.extractedStringLiteralToken()
 
         it 'toggles the current state of the multiline string of the scanner
             back to false', ->
-          expect(lineScanner.currentState.multiline.string).to.be.false
+          expect(lineScanner.currentScanningState.multiline.string).to.be.false
 
         it 'increments the scanner position to just after the string', ->
           expect(lineScanner.position).to.equal 51
@@ -72,6 +89,7 @@ describe 'LineScanner', ->
             .eql [{
                 start: 0,
                 kind: 'STRLIT',
+                lineNumber: 1,
                 lexeme: '\'this is a multiline string with a defined ending \''
               }]
 
@@ -79,48 +97,79 @@ describe 'LineScanner', ->
           expect(result).to.be.true
 
       context 'when there is a multiline string that begins with double quotes
-               and "ends" with single', ->
+              and "ends" with single', ->
+        exampleScanningState =
+          lineNumber: 1
+          multiline:
+            comment: false
+            string: false
+          string:
+            doubleQuote: false
         lineScanner = new LineScanner '"this is a string that begins with double
-                                       quotes and ends with single\''
-        res = lineScanner.extractedStringLiterals()
+                                       quotes and ends with single\'', exampleScanningState
+        res = lineScanner.extractedStringLiteralToken()
         it "doesn't toggle the current state of the multiline string of the
             scanner back to false", ->
-          expect(lineScanner.currentState.multiline.string).to.be.true
+          expect(lineScanner.currentScanningState.multiline.string).to.be.true
 
         it 'is in the double quote state', ->
-          expect(lineScanner.currentState.string.doubleQuote).to.be.true
+          expect(lineScanner.currentScanningState.string.doubleQuote).to.be.true
 
        context 'when there is a multiline string that begins with single quotes
-               and "ends" with double', ->
+                and "ends" with double', ->
+        exampleScanningState =
+          lineNumber: 1
+          multiline:
+            comment: false
+            string: false
+          string:
+            doubleQuote: false
+               
         lineScanner = new LineScanner '\'this is a string that begins with
-                                       single quotes and ends with double"'
-        res = lineScanner.extractedStringLiterals()
+                                       single quotes and ends with double"', exampleScanningState
+        res = lineScanner.extractedStringLiteralToken()
         it "doesn't toggle the current state of the multiline string of the
             scanner back to false", ->
-          expect(lineScanner.currentState.multiline.string).to.be.true
+          expect(lineScanner.currentScanningState.multiline.string).to.be.true
 
         it 'is in the double quote state', ->
-          expect(lineScanner.currentState.string.doubleQuote).to.be.false
+          expect(lineScanner.currentScanningState.string.doubleQuote).to.be.false
 
       context 'when a double quoted string contains single quotes', ->
-        lineScanner = new LineScanner '"I contain \'single\' quotes!"'
-        res = lineScanner.extractedStringLiterals()
+        exampleScanningState =
+          lineNumber: 1
+          multiline:
+            comment: false
+            string: false
+          string:
+            doubleQuote: false
+        lineScanner = new LineScanner '"I contain \'single\' quotes!"', exampleScanningState
+        res = lineScanner.extractedStringLiteralToken()
         it 'scans correctly', ->
           expect(lineScanner.lineTokens).to
             .eql [{
               start: 0,
               kind: 'STRLIT',
+              lineNumber: 1,
               lexeme: '"I contain \'single\' quotes!"'
             }]
 
       context 'when a single quoted string contains double quotes', ->
-        lineScanner = new LineScanner "'I contain \"double\" quotes!'"
-        res = lineScanner.extractedStringLiterals()
+        exampleScanningState =
+          lineNumber: 1
+          multiline:
+            comment: false
+            string: false
+          string:
+            doubleQuote: false
+        lineScanner = new LineScanner "'I contain \"double\" quotes!'", exampleScanningState
+        res = lineScanner.extractedStringLiteralToken()
         it 'scans correctly', ->
           expect(lineScanner.lineTokens).to
             .eql [{
               start: 0,
               kind: 'STRLIT',
+              lineNumber: 1,
               lexeme: "'I contain \"double\" quotes!'"
             }]
 

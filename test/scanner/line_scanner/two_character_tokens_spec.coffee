@@ -5,11 +5,18 @@ LineScanner = require '../../../scanner/line_scanner'
 describe 'LineScanner', ->
   describe 'Extracting Two-Character Tokens', ->
 
-    describe '#extractedTwoCharacterTokens', ->
+    describe '#extractedTwoCharacterToken', ->
 
       context 'when a two-character token is the next token', ->
-        lineScanner = new LineScanner '<='
-        extractionResult = lineScanner.extractedTwoCharacterTokens()
+        @initialScanningState = 
+          lineNumber: 1
+          multiline:
+            comment: false
+            string: false
+          string:
+            doubleQuote: false
+        lineScanner = new LineScanner '<=', @initialScanningState
+        extractionResult = lineScanner.extractedTwoCharacterToken()
 
         it 'accurately increments the current position of the scanner', ->
           expect(lineScanner.position).to.equal 2
@@ -18,6 +25,7 @@ describe 'LineScanner', ->
           expect(lineScanner.lineTokens).to.eql [{
             kind: '<=',
             lexeme: '<=',
+            lineNumber: 1,
             start: 0
           }]
 
@@ -26,8 +34,15 @@ describe 'LineScanner', ->
           expect(extractionResult).to.be.true
 
       context 'when a two-character token is not the next token', ->
-        lineScanner = new LineScanner '.'
-        extractionResult = lineScanner.extractedTwoCharacterTokens()
+        @initialScanningState = 
+          lineNumber: 1
+          multiline:
+            comment: false
+            string: false
+          string:
+            doubleQuote: false
+        lineScanner = new LineScanner '.', @initialScanningState
+        extractionResult = lineScanner.extractedTwoCharacterToken()
 
         it 'does not increment the current position of the scanner', ->
           expect(lineScanner.position).to.equal 0

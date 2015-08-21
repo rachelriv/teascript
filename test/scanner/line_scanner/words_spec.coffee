@@ -3,14 +3,22 @@ expect = chai.expect
 LineScanner = require '../../../scanner/line_scanner'
 
 describe 'LineScanner', ->
+  
+  exampleScanningState = 
+    lineNumber: 1
+    multiline:
+      comment: false
+      string: false
+    string:
+      doubleQuote: false
+
   describe 'Extracting Words', ->
 
-    describe '#extractedWords', ->
+    describe '#extractedWordToken', ->
 
       context 'when a reserved word is the next token', ->
-        lineScanner = new LineScanner 'true ='
-        extractionResult = lineScanner.extractedWords()
-
+        lineScanner = new LineScanner 'true =', exampleScanningState
+        extractionResult = lineScanner.extractedWordToken()
 
         it 'accurately increments the current position of the scanner', ->
           expect(lineScanner.position).to.equal 4
@@ -19,6 +27,7 @@ describe 'LineScanner', ->
           expect(lineScanner.lineTokens).to.eql [{
             kind: 'true',
             lexeme: 'true',
+            lineNumber: 1,
             start: 0
           }]
 
@@ -26,8 +35,8 @@ describe 'LineScanner', ->
           expect(extractionResult).to.be.true
 
       context 'when an identifer is the next token', ->
-        lineScanner = new LineScanner 'myVariable := () ->'
-        extractionResult = lineScanner.extractedWords()
+        lineScanner = new LineScanner 'myVariable := () ->', exampleScanningState
+        extractionResult = lineScanner.extractedWordToken()
 
         it 'accurately increments the current position of the scanner', ->
           expect(lineScanner.position).to.equal 10
@@ -36,6 +45,7 @@ describe 'LineScanner', ->
           expect(lineScanner.lineTokens).to.eql [{
             kind: 'ID',
             lexeme: 'myVariable',
+            lineNumber: 1,
             start: 0
           }]
 
@@ -43,8 +53,8 @@ describe 'LineScanner', ->
           expect(extractionResult).to.be.true
 
       context 'when a word is not the next token', ->
-        lineScanner = new LineScanner '* 5'
-        extractionResult = lineScanner.extractedWords()
+        lineScanner = new LineScanner '* 5', exampleScanningState
+        extractionResult = lineScanner.extractedWordToken()
 
         it 'does not increment the current position of the scanner', ->
           expect(lineScanner.position).to.equal 0
@@ -56,8 +66,8 @@ describe 'LineScanner', ->
           expect(extractionResult).to.be.false
 
       context 'when an identifier is only one character', ->
-        lineScanner = new LineScanner 'x := 123456'
-        extractionResult = lineScanner.extractedWords()
+        lineScanner = new LineScanner 'x := 123456', exampleScanningState
+        extractionResult = lineScanner.extractedWordToken()
 
         it 'accurately increments the current position of the scanner', ->
           expect(lineScanner.position).to.equal 1
@@ -66,6 +76,7 @@ describe 'LineScanner', ->
           expect(lineScanner.lineTokens).to.eql [{
             kind: 'ID',
             lexeme: 'x',
+            lineNumber: 1,
             start: 0
           }]
 
@@ -73,8 +84,8 @@ describe 'LineScanner', ->
           expect(extractionResult).to.be.true
 
       context 'when an identifier that does not begin with a letter is next', ->
-        lineScanner = new LineScanner '5myVar = 1'
-        extractionResult = lineScanner.extractedWords()
+        lineScanner = new LineScanner '5myVar = 1', exampleScanningState
+        extractionResult = lineScanner.extractedWordToken()
 
         it 'does not increment the current position of the scanner', ->
           expect(lineScanner.position).to.equal 0

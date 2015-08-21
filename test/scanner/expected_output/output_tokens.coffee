@@ -388,7 +388,7 @@ class MyTokens
     {lexeme: 'newline', kind: 'newline', start: 4, lineNumber: 4},
     {lexeme: 'x', kind: 'ID', start: 0, lineNumber: 5},
     {lexeme: '=', kind: '=', start: 2, lineNumber: 5},
-    {lexeme: '12E10', kind: 'INTLIT', start: 4, lineNumber: 5},
+    {lexeme: '12E10', kind: 'FLOATLIT', start: 4, lineNumber: 5},
     {lexeme: 'newline', kind: 'newline', start: 4, lineNumber: 5},
     {kind: 'EOF', lexeme: 'EOF', start: 0}
   ]

@@ -11,8 +11,8 @@ argv = require 'yargs'
   .demand 1
   .argv
 
-scan = require './scanner/scanner'
-parse = require './parser/parser'
+scan = require './scanner/scan'
+parse = require './parser/parse'
 generate = require './generators/jsgenerator'
 uglify = require 'uglify-js'
 
@@ -20,11 +20,12 @@ tokens = scan argv._[0]
 return console.log tokens if argv.t
 
 try 
-  AST = parse tokens
-  return console.log AST if argv.s
-  AST.analyze()
-  program = AST.optimize()
+  program = parse tokens
+  return console.log program if argv.s
+  program.analyze()
+  program.optimize()
   return console.log JSON.stringify(program, null, 2) if argv.a
+  
   program = generate program
   if argv.u
     program = uglify.minify(program, {fromString: true}).code

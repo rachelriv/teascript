@@ -2,7 +2,7 @@ chai = require 'chai'
 expect = chai.expect
 fs = require 'fs'
 path = require 'path'
-scan = require '../../scanner/scanner'
+scan = require '../../scanner/scan'
 expectedOutputTokens = require "#{__dirname}/expected_output/output_tokens"
 expectedErrors = require "#{__dirname}/expected_output/expected_scanner_errors"
 

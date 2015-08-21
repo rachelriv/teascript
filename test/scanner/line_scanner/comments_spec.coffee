@@ -1,22 +1,39 @@
 chai = require 'chai'
 expect = chai.expect
+mocha = require 'mocha'
 LineScanner = require '../../../scanner/line_scanner'
 
 describe 'LineScanner', ->
-  describe 'Skipping Comments', ->
 
+  exampleScanningState = 
+    lineNumber: 1
+    multiline:
+      comment: false
+      string: false
+    string:
+      doubleQuote: false
+
+  describe 'Skipping Comments', ->
 
     describe '#skippedMultiComments', ->
 
+
       context 'when a multiline comment without a defined
                ending is the next sequence of characters', ->
+        initialScanningState = 
+          multiline:
+            comment: false
+            string: false
+          string:
+            doubleQuote: false
         lineScanner = new LineScanner '## this is a multiline comment
-                                       without a defined ending'
+                                       without a defined ending',
+                                      initialScanningState
         result = lineScanner.skippedMultiComments()
 
         it 'sets the current state of the mulitline
             comment of the scanner to be true', ->
-          expect(lineScanner.currentState.multiline.comment).to.be.true
+          expect(lineScanner.currentScanningState.multiline.comment).to.be.true
 
         it 'increments the scanner position to the end of the line', ->
           expect(lineScanner.position).to.equal 55
@@ -25,15 +42,18 @@ describe 'LineScanner', ->
           expect(result).to.be.true
 
       context 'when the scanner is in the middle of a multiline comment', ->
-        currentScannerState = multiline: comment: true
+        currentScannerState = 
+          lineNumber: 1
+          multiline: 
+            comment: true
         lineScanner = new LineScanner 'this is the continuation of a multiline
-                                       comment begun elsewhere ##'
-                                      , currentScannerState
+                                       comment begun elsewhere ##', 
+                                       currentScannerState
         result = lineScanner.skippedMultiComments()
 
         it 'toggles the current state of the multiline
             comment of the scanner back to false', ->
-          expect(lineScanner.currentState.multiline.comment).to.be.false
+          expect(lineScanner.currentScanningState.multiline.comment).to.be.false
 
         it 'increments the scanner position to just after the comment', ->
           expect(lineScanner.position).to.equal 66
@@ -44,12 +64,13 @@ describe 'LineScanner', ->
       context 'when there is a multiline comment with a defined ending', ->
         lineScanner =
           new LineScanner '## this is a multiline comment
-                           with a defined ending ## f := 5'
+                           with a defined ending ## f := 5',
+                           exampleScanningState
         result = lineScanner.skippedMultiComments()
 
         it 'toggles the current state of the multiline comment
             of the scanner back to false', ->
-          expect(lineScanner.currentState.multiline.comment).to.be.false
+          expect(lineScanner.currentScanningState.multiline.comment).to.be.false
 
         it 'increments the scanner position to just after the comment', ->
           expect(lineScanner.position).to.equal 55
@@ -60,7 +81,8 @@ describe 'LineScanner', ->
       context 'when there is not a multiline comment nor is the scanner
                in the middle of scanning a multiline comment', ->
         lineScanner = new LineScanner 'This is just a regular
-                                       line with no comments'
+                                       line with no comments',
+                                       exampleScanningState
         result = lineScanner.skippedMultiComments()
 
         it 'does not increment the scanner position', ->
@@ -73,7 +95,7 @@ describe 'LineScanner', ->
   describe '#skippedSingleComments', ->
 
     context 'when single line comment is the next sequence of characters', ->
-      lineScanner = new LineScanner '# this is a single line comment '
+      lineScanner = new LineScanner '# this is a single line comment ', exampleScanningState
       result = lineScanner.skippedSingleComments()
 
       it 'increments the scanner position to the end of the line', ->
@@ -84,7 +106,7 @@ describe 'LineScanner', ->
 
     context 'when a single line comment is not
              the next sequence of characters', ->
-      lineScanner = new LineScanner 'x := 5'
+      lineScanner = new LineScanner 'x := 5', exampleScanningState  
       result = lineScanner.skippedSingleComments()
 
       it 'does not increment the current position of the scanner', ->

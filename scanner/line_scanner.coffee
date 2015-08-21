@@ -4,24 +4,14 @@ format.extend String.prototype
 CustomError = require '../error/custom_error'
 
 class LineScanner
-  constructor: (@line, @currentState) ->
-    @currentState ?= 
-        # lineNumber: 1
-        multiline:
-          comment: false
-          string: false
-        string:
-          doubleQuote: false
-
+  constructor: (@line, @currentScanningState) ->
     @start = 0
     @position = 0
     @lineTokens = []
     @lineErrors = []
-    @lineNumber = @currentState.lineNumber
 
   scan: ->
-    return {@lineErrors, @lineTokens, @currentState} unless @line
-    tokensInLine = false
+    return {@lineErrors, @lineTokens, @currentScanningState} unless @line
 
     while @position < @line.length
       # continue iterating over the line of characters
@@ -31,27 +21,25 @@ class LineScanner
       continue if @skippedSpaces()
       continue if @skippedMultiComments()
       continue if @skippedSingleComments()
-      tokensInLine = true
-      continue if @extractedNumericLiterals()
-      continue if @extractedThreeCharacterTokens()
-      continue if @extractedTwoCharacterTokens()
-      continue if @extractedOneCharacterTokens()
-      continue if @extractedWords()
-      continue if @extractedStringLiterals()
+      continue if @extractedNumericLiteralToken()
+      continue if @extractedThreeCharacterToken()
+      continue if @extractedTwoCharacterToken()
+      continue if @extractedOneCharacterToken()
+      continue if @extractedWordToken()
+      continue if @extractedStringLiteralToken()
 
-      # return an error if we were not able to either extract
-      # something from or skip the current character
-      message = "invalid token at position #{@position}"
-      @lineErrors.push new CustomError message, @lineNumber
-      return {@lineErrors, @lineTokens, @currentState}
+      # return an error otherwise
+      @lineErrors.push new CustomError "invalid token at position #{@position}",
+                                        @currentScanningState.lineNumber
+      return {@lineErrors, @lineTokens, @currentScanningState}
 
-    @addToken {kind: 'newline'} if tokensInLine
-    return {@lineErrors, @lineTokens, @currentState}
+    @addToken {kind: 'newline'} if @lineTokens.length > 0
+    {@lineErrors, @lineTokens, @currentScanningState}
 
   addToken: ({kind, lexeme}) ->
     lexeme ?= kind
     token = {lexeme, kind, @start}
-    token.lineNumber = @lineNumber if @lineNumber?
+    token.lineNumber = @currentScanningState.lineNumber
     @lineTokens.push token
     @lineTokens
 
@@ -71,12 +59,12 @@ class LineScanner
 
   skippedMultiComments: ->
     skippedMultiComments = false
-    if @currentState.multiline.comment
+    if @currentScanningState.multiline.comment
       @lookForMultiCommentEnd()
       skippedMultiComments = true
     else if @line[@position..@position + 1] is '##'
       @position += 2
-      @currentState.multiline.comment = true
+      @currentScanningState.multiline.comment = true
       @lookForMultiCommentEnd()
       skippedMultiComments = true
     skippedMultiComments
@@ -86,12 +74,12 @@ class LineScanner
     if relativePositionOfTrailingHashes >= 0
       # we have found the trailing hashes
       @position += relativePositionOfTrailingHashes + 2
-      @currentState.multiline.comment = false
+      @currentScanningState.multiline.comment = false
     else
       # no trailing hashes
       @position = @line.length
 
-  extractedThreeCharacterTokens: ->
+  extractedThreeCharacterToken: ->
     @start = @position
     if @line[@position...@position + 3] in tokens.threeCharacterTokens
       @addToken {kind: @line[@position...@position + 3]}
@@ -99,7 +87,7 @@ class LineScanner
       return true
     return false
 
-  extractedTwoCharacterTokens: ->
+  extractedTwoCharacterToken: ->
     @start = @position
     if @line[@position...@position + 2] in tokens.twoCharacterTokens
       @addToken {kind: @line[@position...@position + 2]}
@@ -107,7 +95,7 @@ class LineScanner
       return true
     return false
 
-  extractedOneCharacterTokens: ->
+  extractedOneCharacterToken: ->
     @start = @position
     if @line[@position] in tokens.oneCharacterTokens
       @addToken {kind: @line[@position]}
@@ -115,22 +103,22 @@ class LineScanner
       return true
     return false
 
-  extractedStringLiterals: ->
-    if @currentState.multiline.string
+  extractedStringLiteralToken: ->
+    if @currentScanningState.multiline.string
       @extractMultilineString()
       return true
     else if /\"|\'/.test @line[@position]
-      @currentState.string.doubleQuote = /\"/.test @line[@position]
+      @currentScanningState.string.doubleQuote = /\"/.test @line[@position]
       @position++
       # strings multiline by default
-      @currentState.multiline.string = true
+      @currentScanningState.multiline.string = true
       @extractMultilineString()
       return true
     else
       return false
 
   extractMultilineString: ->
-    quotes = if @currentState.string.doubleQuote then '"' else "'"
+    quotes = if @currentScanningState.string.doubleQuote then '"' else "'"
 
 
     regexp = '([^{0}\\\\]|\\\\[\'"\\\\rnst])*({0})'.format quotes
@@ -139,14 +127,14 @@ class LineScanner
 
     if stringGroup
       # found trailing quote
-      @currentState.multiline.string = false
+      @currentScanningState.multiline.string = false
       @position += stringGroup[0].length
       @addToken {kind: 'STRLIT', lexeme: @line[@start...@position]}
     else
       # no trailing quote found
       @position = @line.length
 
-  extractedWords: ->
+  extractedWordToken: ->
     @start = @position
     if /[a-zA-Z_]/.test @line[@position]
       @position++ while /\w/.test(@line[@position]) and @position < @line.length
@@ -160,20 +148,13 @@ class LineScanner
     else
       @addToken {kind: 'ID', lexeme: word}
 
-  extractedNumericLiterals: ->
+  extractedNumericLiteralToken: ->
     @start = @position
     if /\d/.test @line[@position]
       numberGroups = /(?:\d+)(?:\.\d+)?(?:E[+-]?(?:\d+)(?:\.\d+)?)?/.exec @line[@position..]
-      # A number is considered a float if either the fraction or exponent
-      # part of the number has a decimal point. If the exponent is raised
-      # to a negative power, the number is also considered a float, since
-      # raising the exponent to a negative number implies moving the
-      # decimal point to the left.
-      # Example : 2.3E-1 = 0.23
-      #           100E-2 = 1.00
       numLit = numberGroups[0]
-      isFloat = '.' in numLit or '-' in numLit
-      kind = if isFloat then 'FLOATLIT' else 'INTLIT'
+      # A number is considered a float if it has a decimal or has an exponent
+      kind = if '.' in numLit or 'E' in numLit then 'FLOATLIT' else 'INTLIT'
       @addToken {kind, lexeme: numLit}
       @position += numLit.length
       return true

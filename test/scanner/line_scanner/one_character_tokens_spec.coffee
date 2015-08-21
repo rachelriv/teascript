@@ -3,13 +3,21 @@ expect = chai.expect
 LineScanner = require '../../../scanner/line_scanner'
 
 describe 'LineScanner', ->
+  exampleScanningState = 
+    lineNumber: 1
+    multiline:
+      comment: false
+      string: false
+    string:
+      doubleQuote: false
+  
   describe 'Extracting One-Character Tokens', ->
 
-    describe '#extractedOneCharacterTokens', ->
+    describe '#extractedOneCharacterToken', ->
 
       context 'when a one-character token is the next token', ->
-        lineScanner = new LineScanner '*5'
-        extractionResult = lineScanner.extractedOneCharacterTokens()
+        lineScanner = new LineScanner '*5', exampleScanningState
+        extractionResult = lineScanner.extractedOneCharacterToken()
 
         it 'accurately increments the current position of the scanner', ->
           expect(lineScanner.position).to.equal 1
@@ -18,6 +26,7 @@ describe 'LineScanner', ->
           expect(lineScanner.lineTokens).to.eql [{
             kind: '*',
             lexeme: '*',
+            lineNumber: 1,
             start: 0
           }]
 
@@ -26,8 +35,8 @@ describe 'LineScanner', ->
           expect(extractionResult).to.be.true
 
       context 'when a one-character token is not the next token', ->
-        lineScanner = new LineScanner ' x'
-        extractionResult = lineScanner.extractedOneCharacterTokens()
+        lineScanner = new LineScanner ' x', exampleScanningState
+        extractionResult = lineScanner.extractedOneCharacterToken()
 
         it 'does not increment the current position of the scanner', ->
           expect(lineScanner.position).to.equal 0

@@ -1,8 +1,8 @@
 chai = require 'chai'
 expect = chai.expect
 CustomError = require '../../error/custom_error'
-parse = require '../../parser/parser'
-scan = require '../../scanner/scanner'
+parse = require '../../parser/parse'
+scan = require '../../scanner/scan'
 path = require 'path'
 fs = require 'fs'
 generate = require '../../generators/jsgenerator'
@@ -20,9 +20,8 @@ describe 'Optimize', ->
         tokens = scan "#{VALID_OPTIMIZE_TEST_DIR}/#{fileName}"
         program = parse tokens
         program.analyze()
-        program = program.optimize()
-        program = generate program
-        expect(program).to.eql expectedOutput[path.basename(fileName, '.tea')]
+        program.optimize()
+        expect(generate program).to.eql expectedOutput[path.basename(fileName, '.tea')]
 
     for validFileToOptimize in fs.readdirSync VALID_OPTIMIZE_TEST_DIR
       checkOptimization validFileToOptimize

@@ -1,7 +1,7 @@
 chai           = require 'chai'
 expect         = chai.expect
-parse          = require '../../parser/parser'
-scan           = require '../../scanner/scanner'
+parse          = require '../../parser/parse'
+scan           = require '../../scanner/scan'
 path           = require 'path'
 fs             = require 'fs'
 outputASTs     = require "#{__dirname}/expected_output/output_ASTs"

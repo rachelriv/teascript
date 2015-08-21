@@ -4,76 +4,88 @@ sinonChai = require 'sinon-chai'
 expect = chai.expect
 chai.use(sinonChai)
 LineScanner = require '../../../scanner/line_scanner'
-scan = require '../../../scanner/scanner'
+scan = require '../../../scanner/scan'
 
 describe 'LineScanner', ->
-  describe '#scan', ->
-    context 'when the line has valid teascript tokens', ->
-      lineScanner = new LineScanner "f :=  -> 'hello' a.move() true # comment"
-      {lineTokens} = lineScanner.scan()
+  
+  exampleScanningState = 
+    lineNumber: 1
+    multiline:
+      comment: false
+      string: false
+    string:
+      doubleQuote: false
 
-      it 'returns the appropriate tokens', ->
-        expect(lineTokens).to.eql [
-          {kind: 'ID', lexeme: 'f', start: 0},
-          {kind: ':=', lexeme: ':=', start: 2},
-          {kind: '->', lexeme: '->', start: 6},
-          {kind: 'STRLIT', lexeme: "'hello'", start: 9},
-          {kind: 'ID', lexeme: 'a', start: 17},
-          {kind: '.', lexeme: '.', start: 18},
-          {kind: 'ID', lexeme: 'move', start: 19},
-          {kind: '(', lexeme: '(', start: 23},
-          {kind: ')', lexeme: ')', start: 24},
-          {kind: 'true', lexeme: 'true', start: 26},
-          {kind: 'newline', lexeme: 'newline', start: 27}
-        ]
+  describe 'general scanning', ->
 
-    context 'when the line is empty', ->
-      lineScanner = new LineScanner ''
-      lineScanner.skippedSpaces = sinon.stub()
-      lineScanner.skippedMultiComments = sinon.stub()
-      lineScanner.skippedSingleComments = sinon.stub()
-      lineScanner.extractedTwoCharacterTokens = sinon.stub()
-      lineScanner.extractedOneCharacterTokens = sinon.stub()
-      lineScanner.extractedWords = sinon.stub()
-      lineScanner.extractedNumericLiterals = sinon.stub()
-      result = lineScanner.scan()
+    describe '#scan', ->
 
-      it 'returns without trying to extract any tokens/skip any characters', ->
-        expect(lineScanner.skippedSpaces).to.not.have.been.called
-        expect(lineScanner.skippedMultiComments).to.not.have.been.called
-        expect(lineScanner.skippedSingleComments).to.not.have.been.called
-        expect(lineScanner.extractedTwoCharacterTokens).to.not.have.been.called
-        expect(lineScanner.extractedOneCharacterTokens).to.not.have.been.called
-        expect(lineScanner.extractedWords).to.not.have.been.called
-        expect(lineScanner.extractedNumericLiterals).to.not.have.been.called
+      context 'when the line has valid teascript tokens', ->
+        lineScanner = new LineScanner "f :=  -> 'hello' a.move() true # comment", exampleScanningState
+        {lineTokens} = lineScanner.scan()
 
-      it 'returns a result with no line tokens', ->
-        expect(result.lineTokens).to.eql []
+        it 'returns the appropriate tokens', ->
+          expect(lineTokens).to.eql [
+            {kind: 'ID', lexeme: 'f', lineNumber: 1, start: 0},
+            {kind: ':=', lexeme: ':=', lineNumber: 1, start: 2},
+            {kind: '->', lexeme: '->', lineNumber: 1, start: 6},
+            {kind: 'STRLIT', lexeme: "'hello'", lineNumber: 1, start: 9},
+            {kind: 'ID', lexeme: 'a', lineNumber: 1, start: 17},
+            {kind: '.', lexeme: '.', lineNumber: 1, start: 18},
+            {kind: 'ID', lexeme: 'move', lineNumber: 1, start: 19},
+            {kind: '(', lexeme: '(', lineNumber: 1, start: 23},
+            {kind: ')', lexeme: ')', lineNumber: 1, start: 24},
+            {kind: 'true', lexeme: 'true', lineNumber: 1, start: 26},
+            {kind: 'newline', lexeme: 'newline', lineNumber: 1, start: 27}
+          ]
 
-    context 'when the line is full of spaces', ->
-      lineScanner = new LineScanner '                    '
-      lineScanner.extractedTwoCharacterTokens = sinon.stub()
-      lineScanner.extractedOneCharacterTokens = sinon.stub()
-      lineScanner.extractedWords = sinon.stub()
-      lineScanner.extractedNumericLiterals = sinon.stub()
-      lineScanner.scan()
+      context 'when the line is empty', ->
+        lineScanner = new LineScanner '', exampleScanningState
+        lineScanner.skippedSpaces = sinon.stub()
+        lineScanner.skippedMultiComments = sinon.stub()
+        lineScanner.skippedSingleComments = sinon.stub()
+        lineScanner.extractedTwoCharacterToken = sinon.stub()
+        lineScanner.extractedOneCharacterToken = sinon.stub()
+        lineScanner.extractedWordToken = sinon.stub()
+        lineScanner.extractedNumericLiteralToken = sinon.stub()
+        result = lineScanner.scan()
 
-      it 'returns without trying to extract any tokens', ->
-        expect(lineScanner.extractedTwoCharacterTokens).to.not.have.been.called
-        expect(lineScanner.extractedOneCharacterTokens).to.not.have.been.called
-        expect(lineScanner.extractedWords).to.not.have.been.called
-        expect(lineScanner.extractedNumericLiterals).to.not.have.been.called
+        it 'returns without trying to extract any tokens/skip any characters', ->
+          expect(lineScanner.skippedSpaces).to.not.have.been.called
+          expect(lineScanner.skippedMultiComments).to.not.have.been.called
+          expect(lineScanner.skippedSingleComments).to.not.have.been.called
+          expect(lineScanner.extractedTwoCharacterToken).to.not.have.been.called
+          expect(lineScanner.extractedOneCharacterToken).to.not.have.been.called
+          expect(lineScanner.extractedWordToken).to.not.have.been.called
+          expect(lineScanner.extractedNumericLiteralToken).to.not.have.been.called
 
-    context 'when the line is commented out', ->
-      lineScanner = new LineScanner '# example commented out line'
-      lineScanner.extractedTwoCharacterTokens = sinon.stub()
-      lineScanner.extractedOneCharacterTokens = sinon.stub()
-      lineScanner.extractedWords = sinon.stub()
-      lineScanner.extractedNumericLiterals = sinon.stub()
-      lineScanner.scan()
+        it 'returns a result with no line tokens', ->
+          expect(result.lineTokens).to.eql []
 
-      it 'returns without trying to extract any tokens', ->
-        expect(lineScanner.extractedTwoCharacterTokens).to.not.have.been.called
-        expect(lineScanner.extractedOneCharacterTokens).to.not.have.been.called
-        expect(lineScanner.extractedWords).to.not.have.been.called
-        expect(lineScanner.extractedNumericLiterals).to.not.have.been.called
+      context 'when the line is full of spaces', ->
+        lineScanner = new LineScanner '                    ', exampleScanningState
+        lineScanner.extractedTwoCharacterToken = sinon.stub()
+        lineScanner.extractedOneCharacterToken = sinon.stub()
+        lineScanner.extractedWordToken = sinon.stub()
+        lineScanner.extractedNumericLiteralToken = sinon.stub()
+        lineScanner.scan()
+
+        it 'returns without trying to extract any tokens', ->
+          expect(lineScanner.extractedTwoCharacterToken).to.not.have.been.called
+          expect(lineScanner.extractedOneCharacterToken).to.not.have.been.called
+          expect(lineScanner.extractedWordToken).to.not.have.been.called
+          expect(lineScanner.extractedNumericLiteralToken).to.not.have.been.called
+
+      context 'when the line is commented out', ->
+        lineScanner = new LineScanner '# example commented out line', exampleScanningState
+        lineScanner.extractedTwoCharacterToken = sinon.stub()
+        lineScanner.extractedOneCharacterToken = sinon.stub()
+        lineScanner.extractedWordToken = sinon.stub()
+        lineScanner.extractedNumericLiteralToken = sinon.stub()
+        lineScanner.scan()
+
+        it 'returns without trying to extract any tokens', ->
+          expect(lineScanner.extractedTwoCharacterToken).to.not.have.been.called
+          expect(lineScanner.extractedOneCharacterToken).to.not.have.been.called
+          expect(lineScanner.extractedWordToken).to.not.have.been.called
+          expect(lineScanner.extractedNumericLiteralToken).to.not.have.been.called

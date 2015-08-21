@@ -1,8 +1,8 @@
 chai = require 'chai'
 expect = chai.expect
 CustomError = require '../../error/custom_error'
-parse = require '../../parser/parser'
-scan = require '../../scanner/scanner'
+parse = require '../../parser/parse'
+scan = require '../../scanner/scan'
 fs = require 'fs'
 path = require 'path'
 invalidParserProgramsPath = "#{__dirname}/input_programs/invalid_programs"
