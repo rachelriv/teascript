@@ -38,8 +38,7 @@ module.exports = (scannerOutput) ->
   tokens = scannerOutput
   program = parseProgram()
   match 'EOF'
-  if errors.length > 0
-    throw new ParseError errors
+  throw new ParseError errors if errors.length > 0
   program
 
 parseProgram = ->

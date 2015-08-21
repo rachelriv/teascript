@@ -1,22 +1,26 @@
 tokens = require './tokens'
 format = require 'string-format'
 format.extend String.prototype
+CustomError = require '../error/custom_error'
 
 class LineScanner
-  constructor: (@line, @currentState, @lineNumber) ->
-    @currentState ?=
-      multiline:
-        comment: false
-        string: false
-      string:
-        doubleQuote: false
+  constructor: (@line, @currentState) ->
+    @currentState ?= 
+        # lineNumber: 1
+        multiline:
+          comment: false
+          string: false
+        string:
+          doubleQuote: false
+
     @start = 0
     @position = 0
     @lineTokens = []
+    @lineErrors = []
+    @lineNumber = @currentState.lineNumber
 
   scan: ->
-    return {lineError: null, @lineTokens, @currentState} unless @line
-
+    return {@lineErrors, @lineTokens, @currentState} unless @line
     tokensInLine = false
 
     while @position < @line.length
@@ -34,15 +38,15 @@ class LineScanner
       continue if @extractedOneCharacterTokens()
       continue if @extractedWords()
       continue if @extractedStringLiterals()
+
       # return an error if we were not able to either extract
       # something from or skip the current character
-      return {
-        lineError: "invalid token at position #{@position}",
-        lineTokens: []
-      }
+      message = "invalid token at position #{@position}"
+      @lineErrors.push new CustomError message, @lineNumber
+      return {@lineErrors, @lineTokens, @currentState}
 
     @addToken {kind: 'newline'} if tokensInLine
-    return {lineError: null, @lineTokens, @currentState}
+    return {@lineErrors, @lineTokens, @currentState}
 
   addToken: ({kind, lexeme}) ->
     lexeme ?= kind

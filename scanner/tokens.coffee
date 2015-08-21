@@ -10,7 +10,8 @@ class Tokens
     '=',                                 # assignment
     '.',                                 # member access for objects
     ',',                                 # separating args/params
-    ':'                                  # start of a block
+    ':',                                 # start of a block
+    '\\'                                 # for escaping characters
   ]
 
   @twoCharacterTokens = [

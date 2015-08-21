@@ -16,31 +16,24 @@ parse = require './parser/parser'
 generate = require './generators/jsgenerator'
 uglify = require 'uglify-js'
 
-scan argv._[0], (err, tokens) ->
-  if err
-    console.log err
-    return
-  if argv.t
-    console.log tokens
-    return
-  try
-    p = parse tokens
-    if argv.s
-      console.log "#{p}"
-      return
-    p.analyze()
-    p = p.optimize()
-    if argv.a
-      console.log JSON.stringify p, null, 2
-      return
-    program = generate p
-    if argv.u
-      program = uglify.minify(program, {fromString: true}).code
-    if argv.g
-      console.log program
-      return
+tokens = scan argv._[0]
+return console.log tokens if argv.t
 
-  catch err
-    console.log err.message
-    throw err
+try 
+  AST = parse tokens
+  return console.log AST if argv.s
+  AST.analyze()
+  program = AST.optimize()
+  return console.log JSON.stringify(program, null, 2) if argv.a
+  program = generate program
+  if argv.u
+    program = uglify.minify(program, {fromString: true}).code
+  if argv.g
+    console.log program
     return
+  console.log program
+
+catch err
+  console.log err.message
+  throw err
+  return

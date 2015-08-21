@@ -1,35 +1,30 @@
-fs = require 'fs'
-byline = require 'byline'
+fs          = require 'fs'
 LineScanner = require './line_scanner'
-CustomError = require '../error/custom_error'
+ScanError   = require '../error/scan_error'
 
-module.exports = (filePath, callback) ->
-  baseStream = fs.createReadStream filePath, {encoding: 'utf8'}
-  baseStream.on 'error', (err) -> return callback err
-  stream = byline baseStream, {keepEmptyLines: true}
-  allTokens = []
-  currentScannerState =
-    multiline:
-      comment: false
-      string: false
-    string:
-      doubleQuote: false
-  lineNumber = 1
-  isValid = true
-  scanningError = null
+getInitialScanningState = ->
+  lineNumber: 1
+  multiline:
+    comment: false
+    string: false
+  string:
+    doubleQuote: false
 
-  stream.on 'readable', ->
-    lineScanner = new LineScanner stream.read(), currentScannerState, lineNumber
-    {lineError, lineTokens, currentState} = lineScanner.scan()
 
-    if lineError
-      scanningError = new CustomError(lineError, lineNumber).getMessage()
-      baseStream.close()
+module.exports = (filePath) ->
+  tokens = []
+  errors = []
+  currentState = getInitialScanningState()
+  sourceCodeLines = fs.readFileSync(filePath, {encoding: 'utf8'}).split '\n'
 
-    lineNumber++
-    allTokens.push.apply allTokens, lineTokens
-    currentScannerState = currentState
+  for sourceCodeLine in sourceCodeLines
+    lineScanner = new LineScanner sourceCodeLine, currentState
+    {lineErrors, lineTokens, currentState} = lineScanner.scan()
+    currentState.lineNumber++
+    tokens.push.apply tokens, lineTokens
+    errors.push.apply errors, lineErrors
 
-  stream.once 'end', ->
-    allTokens.push {kind: 'EOF', lexeme: 'EOF', start: 0}
-    callback scanningError, allTokens
+  tokens.push {kind: 'EOF', lexeme: 'EOF', start: 0}  
+  throw new ScanError errors if errors.length > 0
+  tokens
+

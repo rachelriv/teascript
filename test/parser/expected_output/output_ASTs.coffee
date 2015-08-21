@@ -1,5 +1,5 @@
 class MyASTs
-  @program01_AST_string = '(Program (Block
+  @program01 = '(Program (Block
    (VarDec (x (* 2 3)))
    (VarDec (y (/ 8 4)))
    (= x (* x y))
@@ -16,7 +16,7 @@ class MyASTs
    (VarDec (my_set <1, 3, 5, 7>))
    (VarDec (my_map {lat: 51.24, long: 0.18}))))'
 
-  @program02_AST_string = '(Program (Block
+  @program02 = '(Program (Block
     (VarDec (x 2))
     (** x 2)
     (= x (+ x 2))
@@ -29,12 +29,12 @@ class MyASTs
                   else
                     (Invoke collatz ((+ (* 3 x) 1))))))))))))'
 
-  @program03_AST_string = '(Program (Block
+  @program03 = '(Program (Block
     (VarDec (a (+ 4 5)))
     (VarDec (b (/ 3 2)))
     (For a x (Block (Invoke out (a))))))'
 
-  @program04_AST_string = '(Program (Block
+  @program04 = '(Program (Block
     (For i (0..5 by 1)
       (Block (Invoke out (i))))
     (For i (0..10 by 2)
@@ -49,7 +49,7 @@ class MyASTs
       that allows for escaped \\\' stuff \\" since teascript is
       \\\\ so darn awesome!")))'
 
-  @program05_AST_string = '(Program (Block (VarDec
+  @program05 = '(Program (Block (VarDec
     (print_fib (Func (max)
       (Block (VarDec (a 1)) (VarDec (b 1))
         (While (< b max)
@@ -59,7 +59,7 @@ class MyASTs
             (= a (+ a b))
             (= b save)))))))))'
 
-  @program06_AST_string = '(Program (Block (VarDec (x 5))
+  @program06 = '(Program (Block (VarDec (x 5))
    (VarDec (foo 123456789))
    (VarDec (bar 11))
    (VarDec (abc "string literal"))
@@ -95,7 +95,7 @@ class MyASTs
    (= (GetItem g (** 3 9))
    (if b a else c))))'
 
-  @program07_AST_string = '(Program (Block
+  @program07 = '(Program (Block
    (VarDec (foo (- 1)))
    (VarDec (bar (not x)))
    (VarDec (foobar (not (- 3))))
@@ -103,7 +103,7 @@ class MyASTs
    (= bar (not foo))
    (= foobar (not (- foo)))))'
 
-  @program08_AST_string = '(Program (Block
+  @program08 = '(Program (Block
    (VarDec (x (or a b)))
    (VarDec (y (or (and c d) (and e f))))
    (VarDec (foo (and (and (and (and (and a b) c) d) e) f)))
@@ -114,14 +114,14 @@ class MyASTs
    (VarDec (all_together (or (>= (+ (% a b) c) d) (and e (isnt f false)))))
    (= all_together (or (>= (+ (% a b) c) d) (and e (isnt f false))))))'
 
-  @program09_AST_string = '(Program (Block (VarDec (z "z"))
+  @program09 = '(Program (Block (VarDec (z "z"))
    (For x "abc" (= z x))
    (For y <1, 7, 9> (VarDec (a b)))
    (For y [a, b, c] (Block (Invoke f (\'strlit1\', \'strlit2\', 1, 2))
                            (Invoke out (y))))
    (For var some_variable (Block (= z var)))))'
 
-  @program10_AST_string = '(Program (Block
+  @program10 = '(Program (Block
    (While (and (is (+ (/ x 10) 5) 2) (> y x)) (= x (+ x 1)))
    (While (VarDec (x true)) "vardec expressions are da bomb")
    (While true (Block (Invoke out ("I am in an infinite loop!!"))))
@@ -132,7 +132,7 @@ class MyASTs
              (= a b)
              (= b save)))))'
 
-  @program11_AST_string = '(Program (Block
+  @program11 = '(Program (Block
     (* 1 8)
     (VarDec (f (Func (a, b, c)
       (Block
@@ -146,12 +146,12 @@ class MyASTs
         (Return (Invoke f (string, <first_arg, 1>, <another_arg>)))))))
     (Func (anonymous_functions) (Invoke are (\'cool\')))))'
 
-  @program12_AST_string = "(Program (Block (Invoke f (1, 2, 3))
+  @program12 = "(Program (Block (Invoke f (1, 2, 3))
    (Invoke (. (GetItem (. (. (GetItem (. a b) 1) c) d) 6) e) ('arg1', 'arg2'))
    (. (. a b) c) (. (Invoke a ()) f) (GetItem (. (Invoke (. a f) ()) g) 3)
    (Invoke (Invoke f (a, b)) (c))))"
 
-  @program13_AST_string = '(Program (Block
+  @program13 = '(Program (Block
     (if true (Block (Invoke out ("hello")))
       else if false (Block (Invoke out ("goodbye")))
       else (Block (Invoke out ("go away"))))
@@ -165,18 +165,18 @@ class MyASTs
             (if c
               (if d (VarDec (x true))))))))'
 
-  @program14_AST_string = '(Program (Block
+  @program14 = '(Program (Block
     (+ (** 3 4) 5)
     (+ (- (** 2 4)) 5)
     (** 3 (** 4 5))
     (+ (** 2 (** 1 (- 3))) 1)
     (** 2 (- (** 3 (- 4))))))'
 
-  @program15_AST_string = '(Program (Block (if b a else c)))'
+  @program15 = '(Program (Block (if b a else c)))'
 
-  @program16_AST_string = '(Program (Block (if b a)))'
+  @program16 = '(Program (Block (if b a)))'
 
-  @program17_AST_string = '(Program (Block (VarDec (x
+  @program17 = '(Program (Block (VarDec (x
     (Class
       (a: none),
       (init: (Func (arg) (Block (= a "Yo")))),
@@ -184,7 +184,7 @@ class MyASTs
       (y: (Func (arg) (Block (** arg 0.5)))))))
       (= z (Object x ()))))'
 
-  @program18_AST_string = '(Program (Block
+  @program18 = '(Program (Block
     (VarDec (a 100))
     (VarDec (b 50))
     (VarDec (c 150))
@@ -195,7 +195,7 @@ class MyASTs
         (= c (- c 1))
         (Invoke funcA (a, b, c))))))))))'
 
-  @program19_AST_string = '(Program (Block
+  @program19 = '(Program (Block
       (VarDec (funcB (Func (n)
         (Block
           (if (isnt n 0) (Block
@@ -204,12 +204,12 @@ class MyASTs
       (For x a (Block
         (Invoke funcB (x))))))'
 
-  @program20_AST_string = '(Program (Block
+  @program20 = '(Program (Block
     (VarDec (x (Func ()
       (Block (Return none)))))
     (Invoke x ())))'
 
-  @program21_AST_string = '(Program (Block
+  @program21 = '(Program (Block
     (VarDec (x 5))
     (VarDec (y (+ x 1)))
     (VarDec (z (= x 3)))

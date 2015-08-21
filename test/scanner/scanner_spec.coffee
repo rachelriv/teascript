@@ -1,87 +1,35 @@
 chai = require 'chai'
 expect = chai.expect
+fs = require 'fs'
+path = require 'path'
 scan = require '../../scanner/scanner'
-outputTokens = require "#{__dirname}/expected_output/output_tokens"
-validScannerPrograms = "#{__dirname}/input_programs/valid_programs"
-invalidScannerPrograms = "#{__dirname}/input_programs/invalid_programs"
+expectedOutputTokens = require "#{__dirname}/expected_output/output_tokens"
+expectedErrors = require "#{__dirname}/expected_output/expected_scanner_errors"
+
 
 describe 'Scanner', ->
 
-  describe 'scanning valid teascript programs', ->
-    describe 'valid teascript program #1', ->
-      context 'when test program1.tea is passed through the scanner', ->
-        expectedTokens1 = outputTokens.program1_tokens
+  context 'scanning valid teascript programs', ->
 
-        it 'returns the appropriate tokens', (done) ->
-          scan "#{validScannerPrograms}/program1.tea", (err, tokens) ->
-            expect(err).to.be.null
-            expect(tokens).to.eql expectedTokens1
-            done()
+    VALID_SCAN_TEST_DIR = "#{__dirname}/input_programs/valid_programs"
 
-    describe 'valid teascript program #2', ->
-      context 'when test program2.tea is passed through the scanner', ->
-        expectedTokens2 = outputTokens.program2_tokens
+    checkScannerOutputTokens = (fileName) ->
+      it "outputs the appropriate tokens after scanning #{fileName}", ->
+        outputTokens = scan "#{VALID_SCAN_TEST_DIR}/#{fileName}"
+        expect(outputTokens).to.eql expectedOutputTokens[path.basename(fileName, '.tea')]
+    
+    for validFileToScan in fs.readdirSync VALID_SCAN_TEST_DIR
+      checkScannerOutputTokens validFileToScan
 
-        it 'returns the appropriate tokens', (done) ->
-          scan "#{validScannerPrograms}/program2.tea", (err, tokens) ->
-            expect(err).to.be.null
-            expect(tokens).to.eql expectedTokens2
-            done()
 
-    describe 'valid teascript program #3', ->
-      context 'when test program3.tea is passed through the scanner', ->
-        expectedTokens3 = outputTokens.program3_tokens
+  context 'scanning invalid teascript programs', ->
 
-        it 'returns the appropriate tokens', (done) ->
-          scan "#{validScannerPrograms}/program3.tea", (err, tokens) ->
-            expect(err).to.be.null
-            expect(tokens).to.eql expectedTokens3
-            done()
+    INVALID_SCAN_TEST_DIR = "#{__dirname}/input_programs/invalid_programs"
 
-    describe 'valid teascript program #4', ->
-      context 'when test program4.tea is passed through the scanner', ->
-        expectedTokens4 = outputTokens.program4_tokens
+    checkScanError = (fileName) ->
+      it "throws the appropriate error after scanning #{fileName}", ->
+        expect(-> scan "#{INVALID_SCAN_TEST_DIR}/#{fileName}")
+          .to.throw expectedErrors[path.basename(fileName, '.tea')]
 
-        it 'returns the appropriate tokens', (done) ->
-          scan "#{validScannerPrograms}/program4.tea", (err, tokens) ->
-            expect(err).to.be.null
-            expect(tokens).to.eql expectedTokens4
-            done()
-
-    describe 'teascript program #5', ->
-      context 'when test program5.tea is passed through the scanner', ->
-        expectedTokens5 = outputTokens.program5_tokens
-
-        it 'returns the appropriate tokens', (done) ->
-          scan "#{validScannerPrograms}/program5.tea", (err, tokens) ->
-            expect(err).to.be.null
-            expect(tokens).to.eql expectedTokens5
-            done()
-
-    describe 'teascript program #6', ->
-      context 'when test program6.tea is passed through the scanner', ->
-        expectedTokens6 = outputTokens.program6_tokens
-
-        it 'returns the appropriate tokens', (done) ->
-          scan "#{validScannerPrograms}/program6.tea", (err, tokens) ->
-            expect(err).to.be.null
-            expect(tokens).to.eql expectedTokens6
-            done()
-
-  describe 'scanning invalid teascript programs', ->
-    describe 'invalid teascript program #1', ->
-      context 'when test program1.tea is passed through the scanner', ->
-
-        it 'returns the appropriate error', (done) ->
-          scan "#{invalidScannerPrograms}/program1.tea", (err, tokens) ->
-            expect(err).to.equal 'line 1: invalid token at position 21'
-            done()
-
-    describe 'invalid teascript program #2', ->
-      context 'when test program2.tea is passed through the scanner', ->
-
-        it 'returns the appropriate error', (done) ->
-          scan "#{invalidScannerPrograms}/program2.tea", (err, tokens) ->
-            expect(err).to.equal 'line 1: invalid token at position 23'
-            done()
-
+    for invalidFileToScan in fs.readdirSync INVALID_SCAN_TEST_DIR
+      checkScanError invalidFileToScan

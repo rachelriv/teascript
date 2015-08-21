@@ -1,5 +1,5 @@
 class MyTokens
-  @program1_tokens = [
+  @program1 = [
     {lexeme: 'x', kind: 'ID', start: 0, lineNumber: 1},
     {lexeme: ':=', kind: ':=', start: 2, lineNumber: 1},
     {lexeme: '2', kind: 'INTLIT', start: 5, lineNumber: 1},
@@ -111,7 +111,7 @@ class MyTokens
   ]
 
 
-  @program2_tokens = [
+  @program2 = [
     {lexeme: 'x', kind: 'ID', start: 0, lineNumber: 1},
     {lexeme: ':=', kind: ':=', start: 2, lineNumber: 1},
     {lexeme: '2', kind: 'INTLIT', start: 5, lineNumber: 1},
@@ -170,7 +170,7 @@ class MyTokens
     {kind: 'EOF', lexeme: 'EOF', start: 0}
   ]
 
-  @program3_tokens = [
+  @program3 = [
     {lexeme: 'a', kind: 'ID', start: 0, lineNumber: 1},
     {lexeme: ':=', kind: ':=', start: 2, lineNumber: 1},
     {lexeme: '4', kind: 'INTLIT', start: 5, lineNumber: 1},
@@ -199,7 +199,7 @@ class MyTokens
     {kind: 'EOF', lexeme: 'EOF', start: 0}
   ]
 
-  @program4_tokens = [
+  @program4 = [
     {lexeme: 'for', kind: 'for', start: 0, lineNumber: 1},
     {lexeme: 'i', kind: 'ID', start: 4, lineNumber: 1},
     {lexeme: 'in', kind: 'in', start: 6, lineNumber: 1},
@@ -325,7 +325,7 @@ class MyTokens
     {kind: 'EOF', lexeme: 'EOF', start: 0}
   ]
 
-  @program5_tokens = [
+  @program5 = [
     {lexeme: 'print_fib', kind: 'ID', start: 0, lineNumber: 3},
     {lexeme: ':=', kind: ':=', start: 10, lineNumber: 3},
     {lexeme: '(', kind: '(', start: 13, lineNumber: 3},
@@ -369,7 +369,7 @@ class MyTokens
     {kind: 'EOF', lexeme: 'EOF', start: 0}
   ]
 
-  @program6_tokens = [
+  @program6 = [
     {lexeme: 'x', kind: 'ID', start: 0, lineNumber: 1},
     {lexeme: ':=', kind: ':=', start: 2, lineNumber: 1},
     {lexeme: '3.1415E0', kind: 'FLOATLIT', start: 5, lineNumber: 1},
